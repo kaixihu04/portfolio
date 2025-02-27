@@ -1,0 +1,340 @@
+---
+title: "CMN496 Final Project"
+author: "Cathy Hu"
+date: "2024-12-16"
+output: html_document
+---
+# Introduction #
+  Perfume is an endless symbol of status and elegance. As the earliest perfumes appeared in Ancient Egypt dated back to around 1000 BC. Fragrance can come to represent one's own qualities. With the improvement of the quality of life and the development of market, the commercialization of perfume has an important economic and cultural value. Statistically, the perfume market already showed a huge profit in business and it has showed great potential in the future. According to Grand View Research, a business consulting organization, the global perfume market size in 2022 was 50.85 million dollars. It is also estimated that the compound annual growth rate of perfume is 5.9% from 2023 to 2030(Grand View Research, n.d). These data highlights the importance for sellers, as well as cosmetics companies, to understand the factors that influence consumer preferences and pricing strategies in this lucrative industry.
+  
+  The rise of e-commerce has revolutionized the way consumers purchase fragrances. eBay is unique in its features including a wide range of products with thousands of sellers from all over the world and flexible pricing. These features make eBay an exceptional platform for researching consumer behavior and pricing strategies in the fragrance market.
+  
+  By conducting research into the relationship between branding, characteristics of products, consumer behavior and price. This study aims to provide stakeholders in the perfume industry with feasible insights to optimize their strategies for selling on eBay.
+  
+# Theoretical Framework & Literature Review #
+
+*RQ1: Do certain brands dominant the perfume market on eBay?*
+
+  Many brands have chosen to develop a line of fragrances. eBay offers a wide range of products from different brands and price points.As a result, the first sub-argument of this study aims to explore what brands appear most frequently on ebay and are also the most popular with customers. According to Agyekum et.al, 2015 about consumer perception theory, the brand's name and price are the two most important factor influencing consumers' judgement on quality of the product. Luxury brands often delivers high quality products with their prominent branding strategy which made them well-known to most of the customers. Based on the research it is hypothesized that luxury brands dominant the perfume market on ebay. 
+
+*RQ2: Do consumers show a preference for smalleror larger sizes? How does it affect pricing?*
+
+  Another characteristics determine the price and value of perfume is size. In the concept of perceived value discussed in Misra et.al, 2024, the customer will compare the cost of a good with the overall benefits it provides. As a result, it is hypothesized small size perfume would be listed more and preferred by customer because it enables customers access the overall quality and value of the perfume in order to lower the risks of buying products do not meet their expectation. 
+
+*RQ3: How do brands pricing gender-specific products on eBay?*
+
+  In addition, different pricing strategy of gender-specific products reflects the market dynamics. Understanding the disparities helps business owners, and consumers acknowledge and address more equal market. It is hypothesized that women's perfume will price higher than men's perfume because of the existence of "pink tax." Pink tax is extra cost paid by women to pay more than men on the same kind of product. Guittar et.al, 2021 concluded that pink tax do not exist in all products. Women paid more on fragrance producst such as deodorant than men. Because fragrance is also included in fragrance type, it is estimated women's perfumes price higher than men's perfume on ebay.
+  
+# Methods #
+
+  The analysis utilized multiple functions in R and dataset: Perfume E-Commerce Dataset 2024 on Kaggle. There are two seperate csv files included. Each one of the file is dedicated for products for men or women and each of the csv files have 1000 products listed for each gender.
+  
+  RQ1: To analyze the popularity of brands in the eBay perfume market, after filter unidentified product using filter, the study used the count() function to calculate the frequency of each brand's appearance in the dataset. This enables identifying the most popular brands based on their representation in the listings. By focusing on the frequency of appearance of each brand, the result could highlight dominant brands on ebay. 
+  
+  RQ2: Because the original datasets did not provide size column, it is necessary to create a new variable called size category. In order to extract information regarding size on the description, which is title column of the dataset, the study used grepl() function to extract specific keywords in title and the ignore.case = TRUE ensures that the function extract information regardless of the case. Then used various function in dplyr including group_by, summarize, and arrange to conclude frequency of each size category and average price of each size category. 
+  
+  RQ3: In order to compare the price difference between men and women products, this study uses summarize and arrange to calculate average price of men and women's perfume. This study also choose 2 brands has relatively similar numbers of products for both men and women as typical case to see if pink tax exist in specific cases. 
+  
+# Result #
+
+```{r}
+library(tidyverse)
+library(readr)
+library(dplyr)
+library(ggplot2)
+men_perfume=read_csv('/Users/hukaixi/Desktop/perfume sales data/ebay_mens_perfume.csv',
+                     col_types= cols(
+                       brand = col_character(),
+                       title=col_character(),
+                       type=col_character(),
+                       price=col_number(),
+                       priceWithCurrency=col_character(),
+                       available=col_number(),
+                       availableText=col_character(),
+                       sold=col_number(),
+                       lastUpdate=col_character(),
+                       itemLocation=col_character(),
+                     ))
+women_perfume=read_csv('/Users/hukaixi/Desktop/perfume sales data/ebay_womens_perfume.csv',
+                       col_types= cols(
+                       brand = col_character(),
+                       title=col_character(),
+                       type=col_character(),
+                       price=col_number(),
+                       priceWithCurrency=col_character(),
+                       available=col_number(),
+                       availableText=col_character(),
+                       sold=col_number(),
+                       lastUpdate=col_character(),
+                       itemLocation=col_character(),
+                     ))
+men_perfume
+women_perfume
+```
+
+## Q1: Do certain brands dominant the perfume market on eBay? ##
+
+```{r}
+men_perfume <- men_perfume %>%
+  mutate(gender = "Men")
+women_perfume <- women_perfume %>%
+  mutate(gender = "Women")
+all_gender_perfume=rbind(men_perfume,women_perfume)
+unique(all_gender_perfume)
+top_five_brands <-
+  all_gender_perfume%>%
+  filter(brand!="Unbranded" & brand!="AS SHOW" & brand!="As Show" & brand!="AS SHOWN" & brand!="AS PICTURE SHOWN" & brand!="As Picture Show" & brand!="As Picture Shown" & brand!="As Shown" & brand!="As picture show" & brand!="As shown" & brand!= "Branded")%>%
+  count(brand,sort=TRUE)%>%
+  head(5)
+top_five_brands
+#Data visualization
+top5_visualization<-
+  ggplot(top_five_brands, aes(x = reorder(brand, -n), y = n, fill = brand)) +
+  geom_bar(stat = "identity", width = 0.7) +
+  labs(
+    title = "Top 5 Brands on eBay by Number of Products",
+    x = "Brand",
+    y = "Number of Products"
+  )+
+  theme_minimal()
+top5_visualization
+ggsave(filename = "result/top5_visualization.png",plot = top5_visualization)
+
+#Let's look at the top 10 brands appears the most the dataset
+top_ten_brands <-
+  all_gender_perfume%>%
+  filter(brand!="Unbranded" & brand!="AS SHOW" & brand!="As Show" & brand!="AS SHOWN" & brand!="AS PICTURE SHOWN" & brand!="As Picture Show" & brand!="As Picture Shown" & brand!="As Shown" & brand!="As picture show" & brand!="As shown" & brand!= "Branded")%>%
+  count(brand,sort=TRUE)%>%
+  head(10)
+top_ten_brands
+#Data visualization
+top10_visualization<-
+  ggplot(top_ten_brands, aes(x = reorder(brand, -n), y = n, fill = brand)) +
+  geom_bar(stat = "identity", width = 0.8)+
+  labs(
+    title = "Top 10 Brands on eBay by Number of Products",
+    x = "Brand",
+    y = "Number of Products"
+  )+
+  theme_minimal()
+top10_visualization
+ggsave(filename = "result/top10_visualization.png",plot = top10_visualization)
+```
+  
+  The result shows that famous luxury brands dominates perfume market on eBay. The top 5 brands is Giorgio Armani, Dolce&Gabbana, Yves Saint Laurent, Versace, and Ralph Lauren. The dominance of these brands in the top 5 and top 10 lists reflects consumer demand and the strong preference of these brands on eBay, which demonstrating their popularity among customers.
+
+## Q2: Do consumers show a preference for smaller(”tester”, ”travel size”) or larger sizes(30ml, 50ml, 100ml) within popular brands, and how does this affect pricing? ##
+
+```{r}
+all_gender_perfume$size_category <- ifelse(grepl("tester|travel size|sampler|10ml|20ml|10 ml|20 ml", all_gender_perfume$title, ignore.case = TRUE), "Tester/Travel Size",
+                      ifelse(grepl("30 ml|30 ML|30ml|30 ML|1 OZ|1oz|1 oz|1OZ|1.7oz|1.7OZ|1.7 oz|1.7 OZ|50 ml|50 ML|50ml|50ML|60 ml|60 ML|60ml|60ML|2.0 oz|75 ml|75ml|2.5oz|2.5 oz|80ml|80 ml|90ml|90 ml", all_gender_perfume$title, ignore.case = TRUE), "Mid-size",
+                      ifelse(grepl("100ml|100ML|3.4 Oz|3.4 oz", all_gender_perfume$title, ignore.case = TRUE),"Large size","Larger size(>100Ml)")))
+
+size_category_comparison <- 
+  all_gender_perfume %>%
+  group_by(size_category) %>%
+  summarize(
+    number_of_products = length(size_category)
+  ) %>%
+  arrange(desc(number_of_products))
+size_category_comparison
+#Calculate average price per size category
+avg_price_based_size<-
+  all_gender_perfume %>%
+  group_by(size_category) %>%
+  summarize(
+    avg_price_per_size = mean(price, na.rm = TRUE)
+  )
+avg_price_based_size
+#data visualization
+size_category_pie_chart<-
+  ggplot(size_category_comparison, aes(x = "", y = number_of_products, fill = size_category)) +
+  geom_bar(stat = "identity", width = 1, color = "white") +
+  coord_polar(theta = "y") +
+  theme_void() + # Removes background, grid, and axes
+  labs(title = "Product Distribution by Size Category") +
+  theme(plot.title = element_text(hjust = 0.5))
+size_category_pie_chart
+ggsave(filename = "result/size_category_pie_chart.png",plot = size_category_pie_chart)
+
+size_category_bar_graph<-
+  ggplot(all_gender_perfume, aes(x = size_category, fill = size_category)) +
+  geom_bar() +
+  labs(title = "Product Distribution by Size Category", x = "Size Category", y = "number_of_products") +
+  theme_minimal()
+size_category_bar_graph
+ggsave(filename = "result/size_category_bar_graph.png",plot = size_category_bar_graph)
+
+avg_price_visualization<-
+  ggplot(avg_price_based_size, aes(x = size_category, y = avg_price_per_size, fill = size_category)) +
+  geom_bar(stat = "identity", width = 0.7) +
+  labs(
+    title = "Average Price by Size Category",
+    x = "Size Category",
+    y = "Average Price"
+  ) +
+  theme_minimal()
+avg_price_visualization
+ggsave(filename = "result/avg_price_visualization.png", plot = avg_price_visualization)
+```
+  
+  The result shows that Larger size, which are sizes over 100ml are more popular on ebay. Usually larger bottles cost less per milliliter,which made them attractive to buyers looking for a more substantial choices. It also revealed that the customer on eBay consider value as an important factor when choosing perfume product. The second graph explains the reason behind the high frequency of larger sizes' appearance to an extent. The average price for larger size is the second lowest, which it made customers' perceived value of larger size as high. 
+
+## Q3: How do brands pricing gender-specific products on eBay? ##
+
+```{r}
+#Average price overall
+men_avg_price <-
+  men_perfume%>%
+  summarize(
+    all_price = sum(price, na.rm = TRUE),
+    men_avg_price = sum(price, na.rm = TRUE) / 1000
+  )%>%
+  arrange(desc(men_avg_price))
+men_avg_price
+women_avg_price <-
+  women_perfume%>%
+  summarize(
+    all_price = sum(price, na.rm = TRUE),
+    women_avg_price = sum(price, na.rm = TRUE) / 1000
+  )%>%
+  arrange(desc(women_avg_price))
+women_avg_price
+
+# Calculate the number of products by gender and size category
+gender_size_count <- 
+  all_gender_perfume %>%
+  group_by(gender, size_category) %>%
+  summarize(
+    number_of_products = length(gender)
+  ) %>%
+  arrange(gender, desc(number_of_products))
+gender_size_count
+```
+
+### Q3.1: Case study: Gender comparison in certain brands: ###
+
+#### Dolce & Gabbana ####
+
+```{r}
+dolce_gabbana_men<- 
+  men_perfume %>%
+  filter(brand=="Dolce & Gabbana"|brand=="Dolce&Gabbana")
+dolce_gabbana_women<- 
+  women_perfume %>%
+  filter(brand=="Dolce & Gabbana"|brand=="Dolce&Gabbana")
+# Calculate average price for gender-specific products
+men_average<- 
+  dolce_gabbana_men %>%
+  summarize(
+    avg_price=mean(price, na.rm = TRUE),
+    men_product=length(price)
+  )%>%
+  mutate(gender="Men")
+men_average
+women_average<- 
+  dolce_gabbana_women %>%
+  summarize(
+    avg_price= mean(price, na.rm = TRUE),
+    product_count = length(price)
+  )%>%
+  mutate(gender="Women")
+women_average
+
+dolce_gabbana_comparison <- bind_rows(
+  men_average,
+  women_average
+)
+dolce_gabbana_comparison
+
+dolce_gabbana_visualization<-
+ggplot(dolce_gabbana_comparison, aes(x = gender, y = avg_price, fill = gender)) +
+  geom_bar(stat = "identity", width = 0.7) +
+  labs(
+    title = "Average Price of Dolce&Gabbana Perfumes by Gender",
+    x = "Gender",
+    y = "Average Price"
+  ) +
+  theme_minimal()
+dolce_gabbana_visualization
+ggsave(filename = "result/dolce_gabbana_visualization.png", plot = dolce_gabbana_visualization)
+```
+
+#### Versace ####
+
+```{r}
+versace_men<- 
+  men_perfume %>%
+  filter(brand=="Versace")
+versace_women<- 
+  women_perfume %>%
+  filter(brand=="Versace")
+# Calculate average price for gender-specific products
+men_average<- 
+  versace_men %>%
+  summarize(
+    avg_price=mean(price, na.rm = TRUE),
+    men_product_count = length(price)
+  )%>%
+  mutate(gender="Men")
+men_average
+women_average<- 
+  versace_women %>%
+  summarize(
+    avg_price=mean(price, na.rm = TRUE),
+    women_product_count = length(price)
+  )%>%
+  mutate(gender="Women")
+women_average
+
+versace_comparison <- bind_rows(
+  men_average,
+  women_average
+)
+versace_comparison
+
+versace_visualization <-
+  ggplot(versace_comparison, aes(x = gender, y = avg_price, fill = gender))+
+  geom_bar(stat = "identity", width = 0.7)+
+  labs(
+    title = "Average Price of Versace Perfumes by Gender",
+    x = "Gender",
+    y = "Average Price"
+  )+
+  theme_minimal()
+versace_visualization
+ggsave(filename = "result/versace_visualization.png", plot = versace_visualization)
+```
+
+  By looking at the overall average price of men and women's perfume, men's perfumes cost more than women's perfumes, which contradicts with the idea of "pink tax". Although the overall trend shows men's perfume are more expensive than women's, the case study of individual brands shows that the pricing strategy can vary. The reason for choosing Dolce & Gabbana and Versace is, the difference between numbers of products listed for both brand are not distinct. 
+  
+  Within Dolce&Gabbana, the average price of men's perfume is more expensive than women's, However, within Versace, the average price for It highlights other factors not only gender impact the pricing of products. 
+
+# Discussion #
+## Implication ##
+  The findings of this study show that well-known luxury brands such as Giorgio Armani, Versace, and Dolce & Gabbana dominate eBay's perfume listings. This result matches with the hypothsis and highlights the strong consumer demand with well-known luxury brands. For sellers, this indicates an opportunity to focus on luxury and high-end brands that attract more buyers. On the other hand, it further illustrates that brand awareness plays a crucial role in customers' decision making process, especially for products such as perfumes.
+  
+  This study also suggests that eBay's perfume products are more often available in large bottles. This does not match with the hypothesis customers perceive as better value due to the lower price per milliliter of perfume, thus implies that customers on ebay prioritize functional value on the products. Sellers can use this finding to prioritize selling perfumes in large bottles to attract more customers. 
+  
+  This study reveals men's perfumes are more expensive than women's on eBay, which contradicts with the hypothesis. However,the brand-specific examples shows complexity behind pricing strategy on e-commerce platforms. 
+  
+## Limitations ##
+  Several factors might influence the result. First,by finding out that men have more larger size of perfume compared to women. This could be the reason for the higher average price of overall perfume for men as compared to women. In addition, changes in price can have an impact. One limitation of this data is that the data does not indicate which products are on sale, but discounts can greatly affect the correlation between price and its brand. Also, there are many ebay sellers and many are individual sellers. Because one of the features of eBay is that sellers can be flexible with pricing, and many items have different conditions, which the data does not specifically mentions, greatly affects the pricing.Additionally, some of the products in the data do not specify brands when counting brands, which can create difficulties in analysis.
+  
+## Future Research Direction ##
+  While this study explored brand dominance, future research could explore the reasons for the dominance of certain brands on eBay. For example, analyzing the branding and advertising strategies of popular brands, customers' feedback, etc. could provide further insights into consumer preferences for perfumes.
+  
+  Future research could also look at the “pink tax” in the perfume market by comparing pricing trends across other e-commerce platforms, brands, etc. in order to determine if the “pink tax” is a generalized phenomenon or if there are other factors, such as the type of product, whether the raw materials are contributing to the “pink tax."
+  
+  Factors other than brand, size, and gender can be explored in future research. Such as fragrance type (eg., floral, aquatics), concentration level (eg., Eau de Toilette, Eau de Parfum) or messages included in names of the perfume(eg.,My Way by Giorgio Armani), and more aspects to achieve comprehensive understanding on perfume sales.
+  
+# References #
+1. Agyekum, C., Huang, H., & Agyeiwaa, A. (2015). Consumer Perception of Product Quality. Microeconomics and Macroeconomics. 
+
+2. Guittar, S.G., Grauerholz, L., Kidder, E.N. et al. Beyond the Pink Tax: Gender-Based Pricing and Differentiation of Personal Care Products. Gend. Issues 39, 1–23 (2022). https://doi.org/10.1007/s12147-021-09280-9
+
+3. Misra, S., Pedada, K., & Sinha, A. (2022). A Theory of Marketing’s Contribution to Customers’ Perceived Value. Journal of Creating Value, 8(2), 219-240. https://doi.org/10.1177/23949643221118152
+
+4. Perfume market size, Share & Trends Analysis Report, 2030(n.d.).Retrieved from https://www.grandviewresearch.com/industry-analysis/perfume-market 
+
+
